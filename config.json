@@ -1,0 +1,9 @@
+{
+  "QUANTITY": 20,
+  "FIRST_NAME": "John",
+  "LAST_NAME": "Doe",
+  "EMAIL_NAME": "example",
+  "EMAIL_DOMAIN": "gmail.com",
+  "COUNTRY": "AU",
+  "PASSWORD": "balls12345"
+}
