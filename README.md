@@ -7,9 +7,8 @@ make many doordash accounts and farm coupon. uses nodejs. if you get banned its 
 
 ## Running
 1. Clone or download the repository
-2. Run the following commands:
+2. Run the following inside the project directory:
 ```
-cd doordash-account-creator
 npm i
 node src/index.js
 ```
