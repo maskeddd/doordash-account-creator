@@ -20,7 +20,7 @@ node src/index.js
 
 ## Configure
 
-The tool can be configured in the included `config.json` file. An explanation of each item can be seen below.
+The tool can be configured in the included `config.json` file. Most items are required.
 
 ```json
 {
