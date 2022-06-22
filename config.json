@@ -1,9 +1,10 @@
 {
-  "QUANTITY": 20,
+  "QUANTITY": 1,
   "FIRST_NAME": "John",
   "LAST_NAME": "Doe",
   "EMAIL_NAME": "example",
   "EMAIL_DOMAIN": "gmail.com",
   "COUNTRY": "AU",
-  "PASSWORD": "balls12345"
+  "PHONE_NUMBER": "0475465679",
+  "ADDRESS": "303 2nd St, Suite 800 San Francisco"
 }
