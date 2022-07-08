@@ -7,85 +7,98 @@ const accounts = [];
 
 async function createAccount(initial = false) {
   const start_time = new Date();
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.setUserAgent(
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36"
-  );
+  const browser = await puppeteer.launch({ headless: false });
+  try {
+    const page = await browser.newPage();
+    await page.setUserAgent(
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36"
+    );
 
-  await page.goto(constants.DOORDASH_URL);
+    await page.goto(constants.DOORDASH_URL);
 
-  // Wait for elements
-  await page.waitForSelector("#FieldWrapper-6");
+    let offset = 6;
 
-  // Generate unique email
-  const email = `${config.EMAIL_NAME}+${("" + Math.random()).substring(2, 8)}@${
-    config.EMAIL_DOMAIN
-  }`;
+    // Wait for elements#FieldWrapper-0
+    try {
+      await page.waitForSelector("#FieldWrapper-6");
+    } catch (e) {
+      await page.waitForSelector("#FieldWrapper-0");
+      offset = 0;
+    }
 
-  // Use config password or generate
-  const password = config?.PASSWORD || generatePassword();
-  await page.type("#FieldWrapper-6", config.FIRST_NAME);
-  await page.type("#FieldWrapper-7", config.LAST_NAME);
-  await page.type("#FieldWrapper-8", email);
-  await page.select("#FieldWrapper-9", config.COUNTRY);
-  await page.type(
-    "#FieldWrapper-10",
-    config?.PHONE_NUMBER ?? `0452${("" + Math.random()).substring(2, 8)}`
-  );
-  await page.type("#FieldWrapper-11", password);
-  await page.click("#sign-up-submit-button");
+    // Generate unique email
+    const email = `${config.EMAIL_NAME}+${("" + Math.random()).substring(
+      2,
+      8
+    )}@${config.EMAIL_DOMAIN}`;
 
-  if (!config?.CHAIN_REFERRALS) return;
+    // Use config password or generate
+    const password = config?.PASSWORD || generatePassword();
+    await page.type(`#FieldWrapper-${offset}`, config.FIRST_NAME);
+    await page.type(`#FieldWrapper-${offset + 1}`, config.LAST_NAME);
+    await page.type(`#FieldWrapper-${offset + 2}`, email);
+    await page.select(`#FieldWrapper-${offset + 3}`, config.COUNTRY);
+    await page.type(
+      `#FieldWrapper-${offset + 4}`,
+      config?.PHONE_NUMBER ?? `0452${("" + Math.random()).substring(2, 8)}`
+    );
+    await page.type(`#FieldWrapper-${offset + 5}`, password);
+    await page.click("#sign-up-submit-button");
 
-  await page.waitForXPath(
-    "/html/body/div[1]/div[1]/div[1]/header/div[2]/div/button/div/div/div/span/div"
-  );
+    if (!config?.CHAIN_REFERRALS) return;
 
-  await (
-    await page.$x(
+    await page.waitForXPath(
       "/html/body/div[1]/div[1]/div[1]/header/div[2]/div/button/div/div/div/span/div"
-    )
-  )[0].click();
+    );
 
-  await page.waitForSelector("#FieldWrapper-3");
-  await page.type("#FieldWrapper-3", config.ADDRESS);
+    await (
+      await page.$x(
+        "/html/body/div[1]/div[1]/div[1]/header/div[2]/div/button/div/div/div/span/div"
+      )
+    )[0].click();
 
-  await page.waitForXPath(
-    "/html/body/div[1]/div[1]/div[4]/div/div[2]/div/div[2]/div/div[2]/div/div[1]/div[1]/div/div[2]/span[1]"
-  );
+    await page.waitForSelector("#FieldWrapper-3");
+    await page.type("#FieldWrapper-3", config.ADDRESS);
 
-  await (
-    await page.$x(
+    await page.waitForXPath(
       "/html/body/div[1]/div[1]/div[4]/div/div[2]/div/div[2]/div/div[2]/div/div[1]/div[1]/div/div[2]/span[1]"
-    )
-  )[0].click();
+    );
 
-  await page.waitForSelector(
-    "#root > div:nth-child(1) > div:nth-child(4) > div > div:nth-child(2) > div > div.styles__ModalContainer-sc-1r4qbfh-0.kXsrbo > div > div.styles__ModalContent-sc-1r4qbfh-4.bGQKlK > div > div.styles__OverlayContent-sc-1fvk6pw-0.jzYzsT > div > div > div.InlineChildren__StyledInlineChildren-sc-1awtuwe-0.jNaRAZ > button.styles__StyledButtonRoot-sc-10jsqmy-0.bujQRW"
-  );
+    await (
+      await page.$x(
+        "/html/body/div[1]/div[1]/div[4]/div/div[2]/div/div[2]/div/div[2]/div/div[1]/div[1]/div/div[2]/span[1]"
+      )
+    )[0].click();
 
-  await page.click(
-    "#root > div:nth-child(1) > div:nth-child(4) > div > div:nth-child(2) > div > div.styles__ModalContainer-sc-1r4qbfh-0.kXsrbo > div > div.styles__ModalContent-sc-1r4qbfh-4.bGQKlK > div > div.styles__OverlayContent-sc-1fvk6pw-0.jzYzsT > div > div > div.InlineChildren__StyledInlineChildren-sc-1awtuwe-0.jNaRAZ > button.styles__StyledButtonRoot-sc-10jsqmy-0.bujQRW"
-  );
+    await page.waitForSelector(
+      "#root > div:nth-child(1) > div:nth-child(4) > div > div:nth-child(2) > div > div.styles__ModalContainer-sc-1r4qbfh-0.kXsrbo > div > div.styles__ModalContent-sc-1r4qbfh-4.bGQKlK > div > div.styles__OverlayContent-sc-1fvk6pw-0.jzYzsT > div > div > div.InlineChildren__StyledInlineChildren-sc-1awtuwe-0.jNaRAZ > button.styles__StyledButtonRoot-sc-10jsqmy-0.bujQRW"
+    );
 
-  console.log(
-    `Successfully created account ${email}:${password}! Took ${
-      (new Date() - start_time) / 1000
-    } seconds.`
-  );
+    await page.click(
+      "#root > div:nth-child(1) > div:nth-child(4) > div > div:nth-child(2) > div > div.styles__ModalContainer-sc-1r4qbfh-0.kXsrbo > div > div.styles__ModalContent-sc-1r4qbfh-4.bGQKlK > div > div.styles__OverlayContent-sc-1fvk6pw-0.jzYzsT > div > div > div.InlineChildren__StyledInlineChildren-sc-1awtuwe-0.jNaRAZ > button.styles__StyledButtonRoot-sc-10jsqmy-0.bujQRW"
+    );
 
-  return await browser.close();
+    console.log(
+      `Successfully created account ${email}:${password}! Took ${
+        (new Date() - start_time) / 1000
+      } seconds.`
+    );
 
-  await page.reload();
+    return await browser.close();
 
-  await page.waitForSelector("#FieldWrapper-1");
+    await page.reload();
 
-  const referral_url = await page.$eval("#FieldWrapper-1", (input) => {
-    return input.getAttribute("value");
-  });
+    await page.waitForSelector("#FieldWrapper-1");
 
-  console.log(referral_url);
+    const referral_url = await page.$eval("#FieldWrapper-1", (input) => {
+      return input.getAttribute("value");
+    });
+
+    console.log(referral_url);
+  } catch (err) {
+    await browser.close();
+    return console.log(`Failed to create account: ${err.message}`);
+  }
 }
 
 (async () => {
