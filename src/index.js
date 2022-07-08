@@ -1,101 +1,99 @@
-const { Builder, Browser, By, until } = require("selenium-webdriver");
+const puppeteer = require("puppeteer");
 const constants = require("./utils/constants");
-const generatePassword = require("./utils/generatePassword");
-const chrome = require("selenium-webdriver/chrome");
 const config = require("../config.json");
+const generatePassword = require("./utils/generatePassword");
 
-console.log("Config loaded!");
+const accounts = [];
 
-async function Doordash() {
-  try {
-    const start_time = new Date();
-    let driver = await new Builder()
-      .forBrowser(Browser.CHROME)
-      .setChromeOptions(
-        new chrome.Options()
-          .headless()
-          .windowSize(constants.SCREEN)
-          .addArguments(constants.USER_AGENT)
-      )
-      .build();
-    try {
-      await driver.get(constants.DOORDASH_URL);
+async function createAccount(initial = false) {
+  const start_time = new Date();
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setUserAgent(
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36"
+  );
 
-      // Wait for page load
-      await driver.wait(async function () {
-        const readyState = await driver.executeScript(
-          "return document.readyState"
-        );
-        return readyState === "complete";
-      });
+  await page.goto(constants.DOORDASH_URL);
 
-      // First Name
-      await driver
-        .findElement(By.id("FieldWrapper-6"))
-        .sendKeys(config.FIRST_NAME);
+  // Wait for elements
+  await page.waitForSelector("#FieldWrapper-6");
 
-      // Last Name
-      await driver
-        .findElement(By.id("FieldWrapper-7"))
-        .sendKeys(config.LAST_NAME);
+  // Generate unique email
+  const email = `${config.EMAIL_NAME}+${("" + Math.random()).substring(2, 8)}@${
+    config.EMAIL_DOMAIN
+  }`;
 
-      // Email
-      const email = `${config.EMAIL_NAME}+${("" + Math.random()).substring(
-        2,
-        8
-      )}@${config.EMAIL_DOMAIN}`;
-      await driver.findElement(By.id("FieldWrapper-8")).sendKeys(email);
+  // Use config password or generate
+  const password = config?.PASSWORD || generatePassword();
+  await page.type("#FieldWrapper-6", config.FIRST_NAME);
+  await page.type("#FieldWrapper-7", config.LAST_NAME);
+  await page.type("#FieldWrapper-8", email);
+  await page.select("#FieldWrapper-9", config.COUNTRY);
+  await page.type(
+    "#FieldWrapper-10",
+    config?.PHONE_NUMBER ?? `0452${("" + Math.random()).substring(2, 8)}`
+  );
+  await page.type("#FieldWrapper-11", password);
+  await page.click("#sign-up-submit-button");
 
-      // Country Code
-      await driver
-        .findElement(
-          By.css(`#FieldWrapper-9 > option[value=${config?.COUNTRY ?? "AU"}]`)
-        )
-        .click();
+  if (!config?.CHAIN_REFERRALS) return;
 
-      // Phone Number
-      await driver
-        .findElement(By.id("FieldWrapper-10"))
-        .sendKeys(
-          config?.PHONE_NUMBER ?? `0452${("" + Math.random()).substring(2, 8)}`
-        );
+  await page.waitForXPath(
+    "/html/body/div[1]/div[1]/div[1]/header/div[2]/div/button/div/div/div/span/div"
+  );
 
-      // Password
-      const password = config?.PASSWORD || generatePassword();
-      await driver.findElement(By.id("FieldWrapper-11")).sendKeys(password);
+  await (
+    await page.$x(
+      "/html/body/div[1]/div[1]/div[1]/header/div[2]/div/button/div/div/div/span/div"
+    )
+  )[0].click();
 
-      // Sign Up
-      await driver.findElement(By.id("sign-up-submit-button")).click();
+  await page.waitForSelector("#FieldWrapper-3");
+  await page.type("#FieldWrapper-3", config.ADDRESS);
 
-      // Address
-      await driver
-        .wait(until.elementLocated(By.xpath(constants.SEARCH_ADDRESS_BUTTON)))
-        .click();
-      await driver
-        .wait(until.elementLocated(By.xpath(constants.ADDRESS_INPUT)))
-        .sendKeys(config.ADDRESS);
-      await driver
-        .wait(until.elementLocated(By.xpath(constants.FIRST_ADDRESS_BUTTON)))
-        .click();
+  await page.waitForXPath(
+    "/html/body/div[1]/div[1]/div[4]/div/div[2]/div/div[2]/div/div[2]/div/div[1]/div[1]/div/div[2]/span[1]"
+  );
 
-      console.log(
-        `Registered ${email}:${password}! Took ${
-          (new Date() - start_time) / 1000
-        } seconds.`
-      );
-    } finally {
-      await driver.quit();
-    }
-  } catch (err) {
-    console.log("Failed to create account: ", err.message);
-  }
+  await (
+    await page.$x(
+      "/html/body/div[1]/div[1]/div[4]/div/div[2]/div/div[2]/div/div[2]/div/div[1]/div[1]/div/div[2]/span[1]"
+    )
+  )[0].click();
+
+  await page.waitForSelector(
+    "#root > div:nth-child(1) > div:nth-child(4) > div > div:nth-child(2) > div > div.styles__ModalContainer-sc-1r4qbfh-0.kXsrbo > div > div.styles__ModalContent-sc-1r4qbfh-4.bGQKlK > div > div.styles__OverlayContent-sc-1fvk6pw-0.jzYzsT > div > div > div.InlineChildren__StyledInlineChildren-sc-1awtuwe-0.jNaRAZ > button.styles__StyledButtonRoot-sc-10jsqmy-0.bujQRW"
+  );
+
+  await page.click(
+    "#root > div:nth-child(1) > div:nth-child(4) > div > div:nth-child(2) > div > div.styles__ModalContainer-sc-1r4qbfh-0.kXsrbo > div > div.styles__ModalContent-sc-1r4qbfh-4.bGQKlK > div > div.styles__OverlayContent-sc-1fvk6pw-0.jzYzsT > div > div > div.InlineChildren__StyledInlineChildren-sc-1awtuwe-0.jNaRAZ > button.styles__StyledButtonRoot-sc-10jsqmy-0.bujQRW"
+  );
+
+  console.log(
+    `Successfully created account ${email}:${password}! Took ${
+      (new Date() - start_time) / 1000
+    } seconds.`
+  );
+
+  return await browser.close();
+
+  await page.reload();
+
+  await page.waitForSelector("#FieldWrapper-1");
+
+  const referral_url = await page.$eval("#FieldWrapper-1", (input) => {
+    return input.getAttribute("value");
+  });
+
+  console.log(referral_url);
 }
 
-async function main() {
-  console.log(`Creating ${config.QUANTITY} accounts...`);
+(async () => {
   for (let i = 0; i < config.QUANTITY; i++) {
-    await Doordash();
+    try {
+      await createAccount();
+    } catch (err) {
+      console.log(`Failed to create account: ${err.message}`);
+    }
   }
-}
-
-main();
+})();
